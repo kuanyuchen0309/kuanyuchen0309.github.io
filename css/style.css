@@ -472,6 +472,32 @@ html[data-theme="dark"] .icon-moon { opacity: 0; transform: scale(0.6) rotate(40
   overflow: hidden;
 }
 
+/* 标题前面那枚「置顶」角标。
+   ⚠️ 它是 .post-title 的【行内】子元素。这一点很关键：
+      .post-title 上面用了 -webkit-box 来做两行截断，如果把角标写成
+      display: block（或者套一层 <div>），盒模型会从"文字流"变成"块级"，
+      两行截断和 baseline 对齐都会出问题。所以这里只能改行内的那些属性。
+
+   它还必须是行内盒，不能靠 float/margin 定位 —— 因为标题可能占两行，
+   角标要跟着第一行的文字走。 */
+.pin-badge {
+  display: inline-block;
+  /* 用 middle 而不是 baseline：角标比正文小，按基线对齐会明显偏低 */
+  vertical-align: middle;
+  margin-right: 7px;
+  padding: 1px 7px;
+  border-radius: 5px;
+  background: var(--bg-sunken);
+  color: var(--text-meta);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.7;
+  /* 标题里可能出现换行，但角标这两个字自己不许断开 */
+  white-space: nowrap;
+  /* 角标是给孩子看的标记，被复制标题时不该带上它 */
+  user-select: none;
+}
+
 .post-summary {
   margin: 6px 0 0;
   font-size: 14px;
