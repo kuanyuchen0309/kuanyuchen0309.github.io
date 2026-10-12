@@ -14,11 +14,11 @@ blog/
 ├── archive.html          归档（只有日期和标题，用来一眼看完全部文章）
 ├── me.html               我（自我介绍 + 一条条内容）
 ├── posts/                每一篇文章一个独立的 HTML 文件
-│   ├── why-learn-web.html
-│   ├── week1-first-page.html
-│   ├── silent-css-failures.html
-│   ├── week2-responsive.html
-│   └── meta-charset-1024.html
+│   ├── tidy-the-drawer.html          十月一日，我扔掉了三箱东西
+│   ├── an-autumn-walk.html           我走了一条平常不会走的路
+│   ├── rereading-an-old-book.html    重读一本书，其实是读另一个自己
+│   ├── cooking-for-one.html          一个人吃饭，最难的是给自己一个理由
+│   └── things-i-cant-say.html        有些话我永远说不出口
 ├── css/
 │   ├── style.css         全站：配色变量、顶栏、底栏、列表、「我」页
 │   └── post.css          只有文章页加载：正文的阅读排版
