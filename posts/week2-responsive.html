@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>第二周：手机上那条横向滚动条是怎么消失的 — xudc.org</title>
+<meta name="description" content="Flexbox、Grid、四种尺寸单位、媒体查询、图片自适应。这一周解决的是「电脑上好看、手机上一团糟」这件事。">
+<script src="../js/theme.js"></script>
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/post.css">
+</head>
+<body class="page-post">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="back" href="../index.html">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      文章
+    </a>
+    <button class="icon-btn" id="themeToggle" type="button" aria-label="切换到深色模式">
+      <svg class="ico icon-moon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+      <svg class="ico icon-sun" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+  <article class="prose">
+    <h1>第二周：手机上那条横向滚动条是怎么消失的</h1>
+    <p class="post-meta">
+      <time datetime="2026-10-10">2026 年 10 月 10 日</time>
+      <span class="tag">#CSS</span>
+      <span class="tag">#布局</span>
+      <span class="tag">#响应式</span>
+    </p>
+
+    <p>第一周结束的时候，我的页面在电脑上看着还行。切到手机上一看：导航竖着排还带小圆点，表单挤成一行，页面能横向拖动——也就是说，内容比屏幕宽，右边有一截被推出了视野外。</p>
+
+    <p>第二周解决的就是这件事。这一周的收获比第一周大得多，因为它回答的是「为什么」。</p>
+
+    <h2>Flexbox：把一组东西排成一行</h2>
+
+    <p>导航为什么是竖的？因为 <code>&lt;li&gt;</code> 默认是块级元素，一个占一整行。</p>
+
+    <p>Flexbox 就是专门解决「把一组东西按行或按列自动排好」的工具。它只有一条核心规则，但这条规则最容易搞反：</p>
+
+    <blockquote>
+      <p><strong><code>display: flex</code> 写在「装这些元素的父元素」身上，不是写在每个子元素身上。</strong></p>
+    </blockquote>
+
+    <p>对导航来说，父元素是 <code>&lt;ul&gt;</code>，子元素才是那几个 <code>&lt;li&gt;</code>：</p>
+
+    <pre><code>nav ul {
+  display: flex;      /* 让 li 横过来 */
+  list-style: none;   /* 去掉小圆点 */
+  padding: 0;         /* 去掉浏览器默认的缩进 */
+  gap: 20px;          /* 项与项之间的间距 */
+}</code></pre>
+
+    <p>加了 flex 之后，会多出两个「方向」的概念：</p>
+
+    <ul>
+      <li><strong>主轴</strong>（main axis）：元素排布的方向，默认横向</li>
+      <li><strong>交叉轴</strong>（cross axis）：和主轴垂直的那个方向</li>
+    </ul>
+
+    <p>所有对齐属性都在回答「沿哪根轴对齐」：</p>
+
+    <table>
+      <tr><th>属性</th><th>管哪根轴</th><th>常用值</th></tr>
+      <tr><td><code>justify-content</code></td><td>主轴</td><td><code>flex-start</code> / <code>center</code> / <code>space-between</code></td></tr>
+      <tr><td><code>align-items</code></td><td>交叉轴</td><td><code>center</code> / <code>flex-start</code></td></tr>
+      <tr><td><code>flex-direction</code></td><td>换主轴方向</td><td><code>row</code>（默认）/ <code>column</code></td></tr>
+      <tr><td><code>flex-wrap</code></td><td>放不下时怎么办</td><td><code>nowrap</code>（默认，硬挤）/ <code>wrap</code>（换行）</td></tr>
+      <tr><td><code>gap</code></td><td>相邻元素之间的间距</td><td><code>20px</code></td></tr>
+    </table>
+
+    <p><code>gap</code> 是这一组里最省事的一个属性。在它出现之前，做间距要在每个子元素上用 <code>margin</code>，然后还要想办法去掉最后一个的多余边距。现在一行就够。</p>
+
+    <p>第一天被我忽略、第二天才用上的是 <code>flex-direction: column</code>——它能把主轴从横向改成纵向，于是「表单里每个标签和输入框各占一行」就变成了一行代码的事。</p>
+
+    <h2>Grid：管两个方向</h2>
+
+    <p>Flexbox 只能管一个方向：一行，或者一列。要做「卡片墙」这种行列都要管的布局，用 Grid：</p>
+
+    <pre><code>.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);   /* 3 列，每列等宽 */
+  gap: 16px;
+}</code></pre>
+
+    <p><code>1fr</code> 是 Grid 专用的单位，意思是「把剩余空间按比例分一份」。<code>repeat(3, 1fr)</code> 就是「重复 3 次 1fr」，写成三遍 <code>1fr 1fr 1fr</code> 也一样。</p>
+
+    <p>判断该用哪个，我现在用的标准是：<strong>只需要排成一行或一列，用 Flexbox；要同时管行和列，用 Grid。</strong></p>
+
+    <h2>四种尺寸写法，决定了手机上会不会横向滚动</h2>
+
+    <p>这是整周最重要的一节。同一个宽度有四种写法，效果完全不同：</p>
+
+    <table>
+      <tr><th>写法</th><th>含义</th><th>什么时候用</th></tr>
+      <tr><td><code>400px</code></td><td>固定 400 像素</td><td>小图标、边框这类确定的尺寸</td></tr>
+      <tr><td><code>100%</code></td><td>占父元素宽度的 100%</td><td>图片、容器，让它跟着父元素走</td></tr>
+      <tr><td><code>2rem</code></td><td>相对根字号，默认 1rem = 16px</td><td>字号、间距</td></tr>
+      <tr><td><code>max-width: 400px</code></td><td>最多 400px，窄了会跟着缩</td><td>卡片、正文容器</td></tr>
+    </table>
+
+    <p>关键在于这一对的区别：</p>
+
+    <pre><code>width: 400px;        /* 死命令：屏幕只有 360px 它也要占 400px → 溢出 → 横向滚动条 */
+max-width: 400px;    /* 上限：屏幕 360px 时它缩到 360px → 不溢出 */</code></pre>
+
+    <p>我原来那个卡片写的是 <code>width: 400px</code>，改成 <code>max-width</code> 之后，横向滚动条当场消失。</p>
+
+    <p>但也不能一刀切全改。<strong>头像的 <code>width: 120px</code> 就该留着</strong>——头像是一个确定的尺寸，你不会希望它在小屏上变小。规则是：<em>确定要多大用 px，不确定、要跟着容器走用 max-width 或 %</em>。</p>
+
+    <h2>媒体查询：让页面「看宽度下菜」</h2>
+
+    <p><code>max-width</code> 只能救单个元素。但有些调整是整套的：手机上字号小一点、间距密一点、卡片从三列变一列。</p>
+
+    <pre><code>/* 基础样式写在上面（这是电脑上的样子） */
+
+@media (max-width: 768px) {
+  /* 屏幕宽度 ≤ 768px 时，这里面的规则才生效 */
+  body { font-size: 16px; }
+  .grid { grid-template-columns: 1fr; }
+}</code></pre>
+
+    <p>它有两个前提，缺一个就完全不生效，而且都不报错：</p>
+
+    <ol>
+      <li><code>&lt;head&gt;</code> 里必须有 <code>&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;</code></li>
+      <li>媒体查询必须写在<strong>基础样式之后</strong>——CSS 里后写的规则覆盖先写的，写在前面会被覆盖掉</li>
+    </ol>
+
+    <p>所以我的做法是：<strong><code>@media</code> 永远放在 <code>style.css</code> 的最后。</strong>不是因为它必须在最后，而是因为这样不会犯错。</p>
+
+    <h2>图片：另一大来源</h2>
+
+    <p>一张 800px 宽的图塞进 375px 的屏幕，直接撑破。一行解决：</p>
+
+    <pre><code>img {
+  max-width: 100%;
+}</code></pre>
+
+    <p>意思是「图片最宽不超过它所在容器的宽度」，容器窄它就跟着缩。这一行加上之后，以后不管往页面里丢多大的图都不会出问题。</p>
+
+    <h2>最后一件：读起来舒服</h2>
+
+    <p>这一周还学了一件和「布局」不那么直接相关、但可能更重要的事——正文排版：</p>
+
+    <pre><code>body {
+  font-size: 17px;    /* 正文不低于 16px */
+  line-height: 1.8;   /* 行高 1.7～1.8 */
+}
+
+.article {
+  max-width: 36em;    /* 每行约 36 个字 */
+  margin: 0 auto;
+  padding: 0 1rem;
+}</code></pre>
+
+    <p>这里有两个说法值得记住。<strong>行高不带单位时，它表示「字号的倍数」</strong>，写 <code>1.8</code> 比写 <code>28.8px</code> 好，因为字号一变，行高会跟着变。</p>
+
+    <p><code>1em</code> 等于当前元素的字号。<strong>36em 在 16px 字号下大约是 576px</strong>，正好是一行 36 个汉字左右的宽度。行太长的坏处是：眼睛看完一行，要费力去找下一行的开头，读久了会累。</p>
+
+    <h2>这一周的验收</h2>
+
+    <p>我用 DevTools 的设备模拟（<code>Ctrl + Shift + M</code>）把 375px（iPhone）、768px（iPad）、1024px 以上三种宽度各看了一遍，确认：</p>
+
+    <ul>
+      <li>没有横向滚动条</li>
+      <li>导航都在一行内</li>
+      <li>卡片从三列平滑变成一列</li>
+      <li>拖浏览器窗口从最宽到最窄，不会突然挤成一团</li>
+    </ul>
+
+    <p>下周开始学 JavaScript。这一周结束时主页看起来和之前差不多，但它现在是「能缩」的——这是一件看不见、但决定手机端体验的事。</p>
+  </article>
+</main>
+
+<footer class="post-footer">
+  <p>© 2026 kuanyuchen · <a href="../index.html">回到文章列表</a></p>
+</footer>
+
+<script src="../js/app.js"></script>
+</body>
+</html>

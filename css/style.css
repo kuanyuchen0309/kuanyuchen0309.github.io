@@ -1,0 +1,686 @@
+/* ============================================================================
+   xudc.org —— 全站样式
+   ----------------------------------------------------------------------------
+   这个文件负责：配色变量、顶栏、底栏、文章列表、归档页、「我」页、搜索框。
+
+   文章正文的排版在 css/post.css 里（只有文章页会加载它）。
+
+   ⚠️ 改配色时注意：深色那组变量写了【两遍】（下面第 2 节和第 3 节），
+      两处内容必须完全一致。原因见第 2 节顶部的注释。
+   ============================================================================ */
+
+
+/* ============================================================================
+   1. 浅色配色（默认）
+   ============================================================================ */
+html {
+  /* 告诉浏览器"这个页面在浅色模式下"，这样滚动条、表单控件也会跟着变 */
+  color-scheme: light;
+
+  --bg: #ffffff;          /* 页面底色 */
+  --bg-soft: #f7f8f9;     /* 顶栏、底栏 */
+  --bg-sunken: #f1f2f4;   /* 搜索框、标签、代码块的底 */
+  --bg-pin: #f4f5f7;      /* 置顶文章那一行的底（全站唯一的"强调"） */
+
+  --text: #14171a;        /* 正文主色 */
+  --text-sub: #5b6470;    /* 次要文字：摘要、说明 —— 白底上 6.00:1 */
+  --text-meta: #6b7280;   /* 元信息：日期、标签 —— 白底上 4.83:1 */
+
+  --line: #ebedef;        /* 列表里那种几乎看不见的分隔线 */
+  --line-strong: #dfe2e6; /* 需要看得见的分隔线（顶栏、底栏） */
+
+  --accent: #1a6dd4;      /* 链接、当前标签页 —— 白底上 5.02:1 */
+  --press: #eef0f2;       /* 手指按下去时的反馈色 */
+
+  --col: 640px;           /* 内容列的最大宽度（电脑上居中） */
+  --topbar-h: 56px;
+  --tabbar-h: 56px;
+}
+
+
+/* ============================================================================
+   2. 深色配色（跟随系统）
+   ----------------------------------------------------------------------------
+   条件写的是 html:not([data-theme="light"])，意思是：
+   「系统是深色，而且用户没有手动把主题锁成浅色」时才生效。
+
+   第 3 节是「用户手动点开关选了深色」时生效。
+
+   为什么必须写两遍：CSS 没有办法"把一个变量组定义一次、被两个条件引用"。
+   所以只能复制一份。改深色配色时，两处一起改 —— 这是本项目唯一的
+   手工同步点，README 里也写了。
+   ============================================================================ */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --bg: #0f1115;
+    --bg-soft: #16191e;
+    --bg-sunken: #1c2027;
+    --bg-pin: #1b2027;
+
+    --text: #e8eaed;
+    --text-sub: #a8b0ba;
+    --text-meta: #8b939e;
+
+    --line: #23272e;
+    --line-strong: #2c3138;
+
+    --accent: #6aa9ff;
+    --press: #1e232a;
+  }
+}
+
+
+/* ============================================================================
+   3. 深色配色（用户手动选择）
+   ⚠️ 这一节的内容必须和第 2 节里那一组完全一样。
+   ============================================================================ */
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0f1115;
+  --bg-soft: #16191e;
+  --bg-sunken: #1c2027;
+  --bg-pin: #1b2027;
+
+  --text: #e8eaed;
+  --text-sub: #a8b0ba;
+  --text-meta: #8b939e;
+
+  --line: #23272e;
+  --line-strong: #2c3138;
+
+  --accent: #6aa9ff;
+  --press: #1e232a;
+}
+
+
+/* ============================================================================
+   4. 基础
+   ============================================================================ */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  /* 阻止 iOS 横屏时自作主张放大字号 */
+  -webkit-text-size-adjust: 100%;
+  /* 点页内锚点跳转时，别让标题被吸顶的顶栏盖住 */
+  scroll-padding-top: calc(var(--topbar-h) + 12px);
+}
+
+body {
+  margin: 0;
+  /* 手机端优先的中文字体栈：从上往下找第一个系统里装了的 */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+               "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC",
+               sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+  /* 底栏是固定定位的，会盖住页面最后一段。这里给它留出位置。 */
+  padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom, 0px) + 8px);
+  /* 关掉手机点击时那层灰蓝色高亮块 —— 我们自己用 :active 做反馈 */
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+/* 键盘 Tab 走到时才显示焦点框（鼠标点击不显示，视觉更干净） */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* 行内代码。
+   放在这里而不是 post.css，是因为它在文章正文之外也会出现
+   （比如「我」页的每一条内容里）。 */
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas,
+               "Liberation Mono", monospace;
+  font-size: 0.9em;
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: var(--bg-sunken);
+}
+
+/* 只给读屏软件看的文字：视觉上不存在，但 HTML 里在 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+
+/* ============================================================================
+   5. 内容列
+   ----------------------------------------------------------------------------
+   max-width + margin: 0 auto 就是"电脑上居中的一列"。
+   手机上没有 640px 那么宽，它会自动缩到 100%，不会横向滚动。
+   ============================================================================ */
+.wrap {
+  max-width: var(--col);
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+
+/* ============================================================================
+   6. 顶栏（吸顶）
+   ----------------------------------------------------------------------------
+   sticky 的意思是"滚动时粘在顶部"，但它仍然占着文档流里的位置。
+   所以页面内容不需要额外的 padding 去躲它 —— 这是它比 position: fixed
+   省事的地方。
+   ============================================================================ */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--bg-soft);
+  border-bottom: 1px solid var(--line-strong);
+  /* 刘海屏：把内容压到安全区下面 */
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.topbar-inner {
+  max-width: var(--col);
+  margin: 0 auto;
+  padding: 8px 12px 8px 16px;
+  min-height: var(--topbar-h);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 头像：没有图片时显示名字首字，有图片时被 css 里的 background-image 盖住 */
+.avatar {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background-color: var(--bg-sunken);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: var(--text-sub);
+  font-size: 15px;
+  font-weight: 600;
+  user-select: none;
+}
+
+.brand-text {
+  position: relative;
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
+
+/* 顶栏的两套内容叠在同一个位置，靠透明度互换 —— 高度不变，所以不会跳动 */
+.bar-a,
+.bar-b {
+  display: block;
+  transition: opacity 0.2s ease;
+}
+
+.bar-b {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.topbar.is-alt .bar-a {
+  opacity: 0;
+}
+
+.topbar.is-alt .bar-b {
+  opacity: 1;
+}
+
+.site-name {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.site-meta {
+  display: block;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-meta);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 文章页顶栏左边的返回入口 */
+.back {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+/* 图标按钮（深色开关）。44px 是手机上"一定点得中"的最小尺寸。 */
+.icon-btn {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  margin-right: -8px;
+  background: none;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--text-sub);
+}
+
+.icon-btn:active {
+  background: var(--press);
+}
+
+/* 两个图标叠着放，靠主题状态显示其中一个 */
+.icon-btn .ico {
+  grid-area: 1 / 1;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* 默认（浅色）：显示月亮，意思是"点一下切到深色" */
+.icon-sun { opacity: 0; transform: scale(0.6) rotate(-40deg); }
+.icon-moon { opacity: 1; }
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) .icon-sun { opacity: 1; transform: none; }
+  html:not([data-theme="light"]) .icon-moon { opacity: 0; transform: scale(0.6) rotate(40deg); }
+}
+
+html[data-theme="dark"] .icon-sun { opacity: 1; transform: none; }
+html[data-theme="dark"] .icon-moon { opacity: 0; transform: scale(0.6) rotate(40deg); }
+
+
+/* ============================================================================
+   7. 搜索框
+   ============================================================================ */
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  margin: 12px 0 4px;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: var(--bg-sunken);
+  color: var(--text-meta);
+}
+
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  /* 必须 ≥16px，否则 iOS 一聚焦就会把整个页面放大 */
+  font-size: 16px;
+  color: var(--text);
+}
+
+.search input::placeholder {
+  color: var(--text-meta);
+}
+
+.list-empty {
+  padding: 48px 16px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-sub);
+}
+
+.list-empty[hidden] {
+  display: none;
+}
+
+
+/* ============================================================================
+   8. 月份标题
+   ----------------------------------------------------------------------------
+   它同时干两件事：
+     ① 把列表按月份分段
+     ② 承担"日期"这个信息的展示 —— 所以每一篇文章里不用再写日期
+   左右两条细线是从你的草图（------- 2026年10月 -------）来的。
+   ============================================================================ */
+.month-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 32px 0 2px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text-meta);
+}
+
+.month-title::before {
+  content: "";
+  flex: none;
+  width: 10px;
+  height: 1px;
+  background: var(--line-strong);
+}
+
+.month-title::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line-strong);
+}
+
+.month[hidden] {
+  display: none;
+}
+
+
+/* ============================================================================
+   9. 文章列表
+   ============================================================================ */
+.post-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* 同月内每篇文章之间一条极浅的线。
+   月与月之间不画线 —— 月份标题本身就是分隔，画了反而乱。 */
+.post + .post {
+  border-top: 1px solid var(--line);
+}
+
+.post-link {
+  display: block;
+  padding: 16px 12px;
+  border-radius: 12px;
+}
+
+.post-link:active {
+  background: var(--press);
+}
+
+/* 置顶：唯一的"强调"，浅浅一层灰底，没有任何图标 */
+.post.is-pinned {
+  border-top-color: transparent;
+  background: var(--bg-pin);
+  border-radius: 12px;
+  margin-top: 6px;
+}
+
+/* 置顶那一行的下一条，别贴着卡片底边画线 */
+.post.is-pinned + .post {
+  border-top-color: transparent;
+}
+
+.post-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.45;
+  /* 标题最多两行，第三行开始变省略号 */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.post-summary {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-sub);
+  /* 摘要固定两行 */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.post-tags {
+  margin: 8px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--bg-sunken);
+  color: var(--text-meta);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+
+/* ============================================================================
+   10. 归档页
+   ----------------------------------------------------------------------------
+   和主页列表用的是同一份内容，但只留标题 —— 目的是一屏能扫完全部文章。
+   ============================================================================ */
+.archive-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.archive-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
+.archive-item:active {
+  background: var(--press);
+}
+
+.archive-date {
+  flex: none;
+  width: 52px;
+  font-size: 13px;
+  color: var(--text-meta);
+  font-variant-numeric: tabular-nums;
+}
+
+.archive-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+
+/* ============================================================================
+   11.「我」页
+   ============================================================================ */
+.hero {
+  padding: 32px 4px 28px;
+  text-align: center;
+}
+
+.hero-avatar {
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background-color: var(--bg-sunken);
+  background-size: cover;
+  background-position: center;
+  color: var(--text-sub);
+  font-size: 32px;
+  font-weight: 600;
+  user-select: none;
+}
+
+.hero-name {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.hero-bio {
+  max-width: 30em;
+  margin: 12px auto 0;
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--text-sub);
+}
+
+.hero-bio p {
+  margin: 0 0 8px;
+}
+
+.hero-bio p:last-child {
+  margin-bottom: 0;
+}
+
+.hero-links {
+  margin: 16px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 18px;
+  font-size: 14px;
+}
+
+.hero-links a {
+  color: var(--accent);
+}
+
+.feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.feed-item {
+  padding: 16px 12px;
+  border-top: 1px solid var(--line);
+}
+
+.feed-date {
+  display: block;
+  font-size: 12px;
+  color: var(--text-meta);
+}
+
+.feed-text {
+  margin: 4px 0 0;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+
+/* ============================================================================
+   12. 底栏（固定）
+   ============================================================================ */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  background: var(--bg-soft);
+  border-top: 1px solid var(--line-strong);
+  /* 全面屏底部那条横条：把按钮抬到它上面去 */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.tabbar-inner {
+  max-width: var(--col);
+  margin: 0 auto;
+  display: flex;
+}
+
+.tab {
+  flex: 1;
+  min-height: var(--tabbar-h);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--text-sub);
+}
+
+.tab:active {
+  background: var(--press);
+}
+
+.tab.is-active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.tab svg {
+  width: 22px;
+  height: 22px;
+}
+
+
+/* ============================================================================
+   13. 尊重系统「减弱动态效果」的设置
+   ============================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .bar-a,
+  .bar-b,
+  .icon-btn .ico {
+    transition: none;
+  }
+}

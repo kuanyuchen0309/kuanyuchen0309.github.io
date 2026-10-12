@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>归档 — xudc.org</title>
+<meta name="description" content="xudc.org 全部文章的按时间归档。">
+<script src="js/theme.js"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="avatar" aria-hidden="true">K</span>
+      <span class="brand-text">
+        <span class="bar-a">
+          <span class="site-name">xudc.org</span>
+          <span class="site-meta">共 5 篇文章</span>
+        </span>
+      </span>
+    </div>
+    <button class="icon-btn" id="themeToggle" type="button" aria-label="切换到深色模式">
+      <svg class="ico icon-moon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+      <svg class="ico icon-sun" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <h1 class="sr-only">xudc.org 的文章归档</h1>
+
+  <!--
+    归档和主页的列表用的是同一批文章，区别是：
+      主页列表  = 标题 + 摘要 + 标签，用来「挑一篇读」
+      归档      = 只有日期和标题，用来「一眼看完全部写过什么」
+  -->
+
+  <section class="month">
+    <h2 class="month-title"><span>2026 年 10 月</span></h2>
+
+    <ul class="archive-list">
+
+      <li>
+        <a class="archive-item" href="posts/why-learn-web.html">
+          <span class="archive-date">10/01</span>
+          <span class="archive-title">我为什么开始自学 Web 开发</span>
+        </a>
+      </li>
+
+      <li>
+        <a class="archive-item" href="posts/week1-first-page.html">
+          <span class="archive-date">10/03</span>
+          <span class="archive-title">第一周：从一张白纸到一个能上线的主页</span>
+        </a>
+      </li>
+
+      <li>
+        <a class="archive-item" href="posts/silent-css-failures.html">
+          <span class="archive-date">10/07</span>
+          <span class="archive-title">静默失效：那些一声不吭的 CSS 错误</span>
+        </a>
+      </li>
+
+      <li>
+        <a class="archive-item" href="posts/week2-responsive.html">
+          <span class="archive-date">10/10</span>
+          <span class="archive-title">第二周：手机上那条横向滚动条是怎么消失的</span>
+        </a>
+      </li>
+
+      <li>
+        <a class="archive-item" href="posts/meta-charset-1024.html">
+          <span class="archive-date">10/12</span>
+          <span class="archive-title">一行 meta 标签的 1024 字节规则</span>
+        </a>
+      </li>
+
+    </ul>
+  </section>
+
+</main>
+
+<nav class="tabbar">
+  <div class="tabbar-inner">
+    <a class="tab" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 6h14M5 11h14M5 16h9"/></svg>
+      文章
+    </a>
+    <a class="tab is-active" href="archive.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/></svg>
+      归档
+    </a>
+    <a class="tab" href="me.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8.5" r="4"/><path d="M5 20c.8-4 4-6 7-6s6.2 2 7 6"/></svg>
+      我
+    </a>
+  </div>
+</nav>
+
+<script src="js/app.js"></script>
+</body>
+</html>
