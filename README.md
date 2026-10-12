@@ -10,9 +10,9 @@
 
 ```
 blog/
-├── index.html            文章列表（按月份分组、搜索、标签、置顶）
+├── index.html            文章列表（按月份分组、搜索、标签筛选、置顶、定位卡）
 ├── archive.html          归档（只有日期和标题，用来一眼看完全部文章）
-├── me.html               我（自我介绍 + 一条条内容）
+├── me.html               我（自我介绍 + 一条条内容，动态可以配图）
 ├── posts/                每一篇文章一个独立的 HTML 文件
 │   ├── tidy-the-drawer.html          十月一日，我扔掉了三箱东西
 │   ├── an-autumn-walk.html           我走了一条平常不会走的路
@@ -24,11 +24,12 @@ blog/
 │   └── post.css          只有文章页加载：正文的阅读排版
 ├── js/
 │   ├── theme.js          深色模式的"防闪烁"脚本（必须在 <head> 里）
-│   └── app.js            深色开关、搜索、顶栏淡化
+│   └── app.js            深色开关、搜索、标签筛选、顶栏文案、置顶排序、顶栏淡化
 ├── img/
 │   ├── touxiang.jpg      头像原图（645×645）
 │   ├── touxiang-180.png  主屏幕图标，从上面那张缩来的
-│   └── touxiang-512.png  同上，给 Android 用
+│   ├── touxiang-512.png  同上，给 Android 用
+│   └── feed/             「我」页动态里的配图
 └── manifest.webmanifest  让手机把它装成 App（见下面「装到手机主屏幕上」）
 ```
 
@@ -78,12 +79,19 @@ $s.Dispose()
 
 **第 2 步：在 `index.html` 的列表里加一条。**
 找到 `<ul class="post-list">`，把最新的一篇放在**最前面**（同一月份内按时间倒序）。
-复制一条 `<li class="post">...</li>` 改内容。
+复制一条 `<li class="post">...</li>` 改内容。这一条上有三个属性要写对：
+
+| 属性 | 作用 | 写错会怎样 |
+| --- | --- | --- |
+| `data-tags="随笔 生活"` | 让标签筛选能工作。**用空格分隔，不要写 `#`** | 点那个标签筛不出这篇 |
+| `data-newest data-date="2026-10-15"` | 标记"最新的一篇"，顶栏就靠它算出「最后更新」 | 顶栏显示的日期不对 |
+| `data-pin="1"` | 只加在置顶那一条上，见下面 | —— |
+
+⚠️ **`data-newest` 是"唯一标记"**：加新文章时，要把 `data-newest` 和 `data-date` 从旧的那一条上**删掉**，搬到新的一条上。同时检查三处（`index.html` / `archive.html` / `me.html`）顶栏里的「最后更新：X 月 X 日」要不要跟着改 —— 只有首页那个会被 JavaScript 自动算出来，另外两个页面是静态文字。
 
 **第 3 步：在 `archive.html` 的归档里加一条。**
 
 **别忘了两件小事：**
-- 三个页面顶栏里的「共 N 篇文章」，把 `N` 改掉（`index.html`、`archive.html`、`me.html` 各一处）
 - 如果新的月份开始了，要在两个列表里各加一个月份标题：
 
 ```html
@@ -93,13 +101,94 @@ $s.Dispose()
 </section>
 ```
 
-**关于「置顶」**：给 `<li>` 加上 `is-pinned` 这个 class，它就会变成浅灰底的那一条：
+- 首页定位卡（`.intro`）不改也行，除非你的自我介绍变了。
+
+**关于「置顶」**：给 `<li>` 加上 `is-pinned` 这个 class，它就会变成浅灰底、并且标题前面出现一枚「置顶」角标：
 
 ```html
-<li class="post is-pinned">
+<li class="post is-pinned" data-pin="1" data-tags="随笔 生活">
 ```
 
+`data-pin` 里的数字**只决定置顶之间的先后**：数字小的排前面，没写数字当作 0（也就是最前）。只有一条置顶时它什么也不做 —— 顺序本来就对。**想换置顶顺序，改数字就行，不用搬动整段 HTML。**
+
 建议**最多置顶一篇**——两条浅灰底挨在一起，视觉上会乱。
+
+**注意：置顶那一条会显示在最新一篇的上面**（排序是"置顶优先"，不是按日期）。所以如果置顶的是旧文章，列表里最上面那条的日期会比第二条旧，这是正常的。
+
+---
+
+## 标签筛选
+
+首页上的标签现在是**可以点的**：点 `#读书` 就只剩读书那几篇，再点一次取消。筛选时列表上方会出现一行「筛选：#读书 · 2 篇」和一个「清除」按钮。
+
+- 筛选是**在页面里做的**，不会改网址。所以筛完的结果没法分享给别人 —— 这是有意的取舍：做成 `?tag=读书` 需要改动导航和链接的写法，等以后再说。
+- 标签和搜索**可以叠加**：选了 `#随笔` 又在搜索框里打字，两个条件同时生效。
+- **按 Esc 只清空搜索，不清除标签** —— Esc 的意思是"清掉我刚打的字"。要取消标签就点「清除」或再点一次那枚标签。
+- **不用 JavaScript 的时候**，标签就是一枚普通标签，点不动。页面上不会出现"看着能点、点了没反应"的东西：`app.js` 只有在能接管的情况下才会把标签换成按钮。
+
+---
+
+## 「我」页的动态怎么配图
+
+动态（`me.html` 里的 `<li class="feed-item">`）可以配图。把图片放进 `img/feed/`，然后这样写：
+
+```html
+<li class="feed-item" id="d-2026-10-14">
+  <time class="feed-date" datetime="2026-10-14">2026 年 10 月 14 日</time>
+  <p class="feed-text">文字。</p>
+
+  <figure class="feed-figure">
+    <img src="img/feed/2026-10-14-1.jpg" width="1200" height="900" alt="图片说明" loading="lazy">
+    <figcaption>图说，可以整段删掉</figcaption>
+  </figure>
+</li>
+```
+
+**四条规矩：**
+
+1. **`width` / `height` 必须写，而且要填图片的真实像素尺寸。** 这不是摆设 —— 浏览器靠它提前按比例占好位置。不写的话图片下载完会把下面所有内容顶下去，页面"跳"一下。
+2. **图片先压过再放进来。** 手机原图动辄 3～8 MB，一页五条动态能到 40 MB，手机上直接劝退。规矩定死：**长边 ≤ 1600px，JPEG，单张 ≤ 200 KB**。（参考：`img/touxiang-512.png` 是 452 KB，比整个站所有 HTML 加起来还大 —— PNG 不适合存照片。）
+3. **文件命名**：`img/feed/年-月-日-序号.jpg`，比如 `2026-10-14-1.jpg`。按名字排序就是时间顺序。
+4. **排版不用管宽度**：一张图铺满整行；两张并排两列；三张以上自动折行成网格，并且统一裁成正方形（取中间那块）。最多放九张还算顺眼。全部在 `style.css` 第 18 节。
+
+**关于「点进去」**：动态故意**不做单独的详情页**。它本来就短，为每条动态建一个文件会让内容重复一份（和首页、归档那种重复还不一样，那是纯粹的重复）。`id="d-2026-10-14"` 那个锚点是给外部链接用的 —— 你可以在文章里写 `<a href="../me.html#d-2026-10-14">` 引到某一条动态。**如果以后某条动态写得很长**，再考虑给它加到正文里展开。
+
+**生成示例图的那段命令**（把 `img/touxiang.jpg` 裁成正方形、按 JPEG 质量 82 存到 `img/feed/`）：
+
+```powershell
+Add-Type -AssemblyName System.Drawing
+$codec = [System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() |
+         Where-Object { $_.MimeType -eq 'image/jpeg' }
+$ep = New-Object System.Drawing.Imaging.EncoderParameters(1)
+$ep.Param[0] = New-Object System.Drawing.Imaging.EncoderParameter(
+  [System.Drawing.Imaging.Encoder]::Quality, [int64]82)
+
+$img = [System.Drawing.Image]::FromFile((Resolve-Path 'img\touxiang.jpg').Path)
+$bmp = New-Object System.Drawing.Bitmap(1200, 1200, [System.Drawing.Imaging.PixelFormat]::Format24bppRgb)
+$g = [System.Drawing.Graphics]::FromImage($bmp)
+$g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+$g.DrawImage($img, (New-Object System.Drawing.Rectangle(0, 0, 1200, 1200)))
+$g.Dispose()
+$bmp.Save("$PWD\img\feed\新图.jpg", $codec, $ep)
+$bmp.Dispose(); $ep.Dispose(); $img.Dispose()
+```
+
+---
+
+## 首页和归档有什么区别
+
+两个页面用的是同一批文章，但**回答的问题不一样**，所以不算重复：
+
+| | 首页（`index.html`） | 归档（`archive.html`） |
+| --- | --- | --- |
+| 每条显示 | 标题 + 摘要两行 + 标签 | 日期 + 标题 |
+| 单条高度 | 约 96px | 约 41px |
+| 回答的问题 | 「我该读哪一篇」 | 「我到底写过什么」 |
+| 额外功能 | 搜索、标签筛选、置顶 | 一屏扫完全部 |
+
+**现在文章少（5 篇），两个页面看起来像**；等到三五十篇，首页会拉得很长、归档仍然一屏能扫完，差别就自然出来了。
+
+**以后想缓解这种重复**，可以：首页只留「置顶 + 最近 8 篇」+ 一条「查看全部 →」指向归档。⚠️ 真要这么做有**一个坑**：搜索只筛页面上已有的文章，如果只是把旧文章藏起来、不给办法展开，搜索就搜不到它们了。所以要么配一个「加载更多」按钮，要么让搜索时自动展开全部。
 
 ---
 
@@ -121,17 +210,33 @@ $s.Dispose()
 
 ## 换成自己的头像
 
-现在是纯文字头像（圆圈里一个 `K`）。换成图片：
+**顶栏里没有头像** —— 站名左边那块只放文字。头像只出现在两个地方：
 
-1. 把图片放进 `img/`，命名成 `avatar.jpg`
-2. 在三个页面（`index.html` / `archive.html` / `me.html`）里的头像元素上加一句行内样式：
+| 位置 | 元素 | 尺寸 |
+| --- | --- | --- |
+| 首页的定位卡 | `.intro-avatar` | 44px（手机上 56px） |
+| 「我」页的自我介绍 | `.hero-avatar` | 84px |
+
+两处都写在各自页面的行内样式里，指向同一张图 `img/touxiang.jpg`：
 
 ```html
-<span class="avatar" style="background-image: url('img/avatar.jpg')" aria-hidden="true"></span>
+<!-- 首页定位卡里 -->
+<div class="intro-avatar" style="background-image: url('img/touxiang.jpg')" aria-hidden="true">K</div>
+
+<!-- 「我」页自我介绍里 -->
+<div class="hero-avatar" style="background-image: url('img/touxiang.jpg')" aria-hidden="true">K</div>
 ```
 
-注意 `me.html` 里那个大头像的 class 是 `hero-avatar`，路径写 `img/avatar.jpg`（它不在子目录里）。
-头像元素里的那个 `K` 字不用删——图片会盖住它；万一图片加载失败，那个字就是兜底。
+换头像的做法：
+
+1. 把新图片放进 `img/`，**保持文件名 `touxiang.jpg`**（或者改这两处的 `url(...)`）
+2. 顺手重新生成两个主屏幕图标尺寸 —— 见上面目录结构里那段 PowerShell
+3. **图片尺寸最好是正方形**：这两个元素是圆形裁切（`border-radius: 50%`），长方形的图会被切掉两边
+
+元素里那个 `K` 字不用删，也不用改：图片会盖住它，万一图片没加载出来它就是兜底。
+
+⚠️ 想给顶栏加回头像的话，**不要直接复用 `.intro-avatar`**（它是 44px、配卡片的）。
+原来那个 36px 的 `.avatar` 样式已经删掉了，需要重新写一个。
 
 ---
 
@@ -194,8 +299,11 @@ $s.Dispose()
 | 内容列宽 | 铺满屏幕，最大 640px | 最大 720px |
 | 正文行宽 | `34em`（约 34 个汉字） | `38em`（约 38 个汉字） |
 | 底栏 | 固定在底部 | `display: none` |
+| 首页定位卡 | 竖排、居中 | 横排、左对齐（头像在左） |
 
 **为什么手机不受影响**：手机样式全部是默认规则（"手机优先"），桌面端只在 `@media (min-width: 768px)` 里做覆盖。手机屏幕是 375～430px，永远进不了这个媒体查询，所以电脑端的改动在手机上不可能生效。反过来如果写成 `max-width`，就得把现有手机样式搬进媒体查询，搬漏一条就出事。
+
+**唯一的例外是首页定位卡**（`style.css` 第 16 节写桌面横排、第 19 节用 `max-width: 767px` 改成手机竖排）。这是有意反过来写的：这张卡在手机上才是少数派形态，写成默认桌面更短。⚠️ **第 19 节里只放"新加元素"的覆盖，不要往里搬任何原本就有的手机样式** —— 那条警告防的就是这件事。
 
 **`.nav-desktop` 为什么是独立的 `<nav>`**：底栏那三个链接是"图标在上、文字在下"的竖排结构，塞进顶栏要写一堆反向覆盖。所以另外写了一个干净的 `<nav>`，默认 `display: none`，只在桌面端出现。**它写在主题开关按钮之前**，因为有 `margin-left: auto` 把它推到右边；顺序反了就会跑到按钮后面。
 
@@ -230,7 +338,11 @@ git push -u origin main
 
 | 事情 | 现状 | 为什么这样选 |
 | --- | --- | --- |
-| 加文章要改 4 个地方 | 手工同步 | 换来的是"没有构建步骤、内容在 HTML 里、关掉 JS 也能用"。第 4 处是文章页 `<head>` 里那几行 manifest/图标（见「装到手机主屏幕上」）。等你以后上 Astro，这些重复会自动消失 |
-| 标签不能点击筛选 | 只展示 | 筛选需要 `?tag=xxx` 这样的网址状态，属于下一阶段的活 |
+| 加文章要改 3 个地方（另有 4 处属性要对） | 手工同步 | 换来的是"没有构建步骤、内容在 HTML 里、关掉 JS 也能用"。那 4 处是 `<li>` 上的 `data-tags`、`data-newest`、`data-date`，以及文章页 `<head>` 里那几行 manifest/图标（见「装到手机主屏幕上」）。等你以后上 Astro，这些重复会自动消失 |
+| 文章文件名就是网址 | 英文 slug + `.html` | 用英文是因为中文文件名在分享时会长成一串 `%E6%9C%89...`；留 `.html` 是因为没有服务器时，这是唯一能表达"这是一个页面"的方式。**改文件名等于改网址，旧链接会断** —— 所以没事别改 |
+| 标签筛选不改网址 | 只在本页筛 | 做成 `?tag=读书` 需要改导航和所有链接的写法。代价是筛完的结果不能分享 |
+| 上一篇/下一篇导航 | 没有 | 需要知道文章之间的先后关系，属于"内容有元数据"之后的事 |
 | 深色配色写了两遍 | `style.css` 第 2、3 节 | 见上面「怎么改配色」 |
 | 文章页没有底栏导航 | 只有左上角「文章」返回 | 读长文时给她尽量干净的一屏 |
+| 电脑端是单列，不是两栏 | 内容列居中 720px | 两边留白是**刻意的**：一行几十个汉字最舒服，撑满屏反而累。加侧栏要改掉 `.wrap` 的居中结构，属于一次独立重构，收益也不明显（导航已经在顶栏了） |
+| 动态不做单独的详情页 | 只有 `#锚点` | 动态本来就短，为每条建文件会让内容重复一份。写长了再考虑 |

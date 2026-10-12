@@ -25,11 +25,14 @@
 <header class="topbar">
   <div class="topbar-inner">
     <div class="brand">
-      <span class="avatar" style="background-image: url('img/touxiang.jpg')" aria-hidden="true">K</span>
       <span class="brand-text">
         <span class="bar-a">
           <span class="site-name">xudc.org</span>
-          <span class="site-meta">共 5 篇文章</span>
+          <!-- 这段静态文字是「没有 JavaScript 时」的兜底。
+               有 JavaScript 时，js/app.js 会读下面列表里标了 data-newest
+               那篇的日期，把它换成「最后更新：10 月 12 日」——
+               也就是说，以后加文章不用再来改这一行。 -->
+          <span class="site-meta" id="statusLatest">共 5 篇文章</span>
         </span>
       </span>
     </div>
@@ -54,6 +57,21 @@
   <!-- 页面上不显示这个标题，但搜索引擎和读屏软件需要它 -->
   <h1 class="sr-only">xudc.org 的文章列表</h1>
 
+  <!-- 定位卡：告诉第一次来的人「这是谁的地方」。
+       页面一打开就是搜索框加列表的话，太像一份没有署名的公文。
+       手机上自动变成竖排（见 style.css 第 16 节）。 -->
+  <section class="intro">
+    <div class="intro-avatar" style="background-image: url('img/touxiang.jpg')" aria-hidden="true">K</div>
+    <div class="intro-text">
+      <h2 class="intro-name">kuanyuchen</h2>
+      <p class="intro-bio">这是一个随意的 blog。写些日常、读书和想不明白的事。</p>
+      <p class="intro-links">
+        <a href="https://github.com/kuanyuchen0309">GitHub</a>
+        <a href="me.html">关于我</a>
+      </p>
+    </div>
+  </section>
+
   <!-- 搜索：没有 JavaScript 时它不会筛，但也绝不会报错 -->
   <form class="search" role="search">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.8-3.8"/></svg>
@@ -62,21 +80,34 @@
 
   <div id="listWrap">
 
+    <!-- 标签筛选的状态提示。
+         默认 hidden，点了某个标签之后 js/app.js 才把它显示出来。
+         没有 JavaScript 时它永远是隐藏的，标签也点不动 —— 不会出现
+         「点了没反应」的死按钮。 -->
+    <div class="filter-bar" id="filterBar" hidden>
+      <span class="filter-label">筛选：<strong id="filterTag"></strong><span id="filterCount"></span></span>
+      <button class="filter-clear" id="filterClear" type="button">清除</button>
+    </div>
+
     <!-- 一个月一组。月份标题同时承担「日期」的展示，所以每篇文章里不再写日期。 -->
     <section class="month">
       <h2 class="month-title"><span>2026 年 10 月</span></h2>
 
       <ul class="post-list">
 
-        <li class="post is-pinned">
+        <!-- 置顶：data-pin 里的数字是排序用的，1 最靠前。
+             想调整置顶的先后顺序，改这个数字就行，不用搬动整段 HTML。
+             这个功能要有 JavaScript 才生效；不过随便哪一条标着 data-pin，
+             静态 HTML 本来就是排在最前面的，所以关掉脚本也不会乱。 -->
+        <li class="post is-pinned" data-pin="1" data-tags="随笔 生活">
           <a class="post-link" href="posts/tidy-the-drawer.html">
-            <h3 class="post-title">十月一日，我扔掉了三箱东西</h3>
+            <h3 class="post-title"><span class="pin-badge">置顶</span>十月一日，我扔掉了三箱东西</h3>
             <p class="post-summary">收拾房间最难的不是分类，是承认那个「以后可能会用上」的自己没有出现。</p>
             <p class="post-tags"><span class="tag">#随笔</span><span class="tag">#生活</span></p>
           </a>
         </li>
 
-        <li class="post">
+        <li class="post" data-tags="随笔 散步">
           <a class="post-link" href="posts/an-autumn-walk.html">
             <h3 class="post-title">我走了一条平常不会走的路</h3>
             <p class="post-summary">一条走了很多次却从没进去过的巷子。关于散步、注意力，和「没有目的地」这件事。</p>
@@ -84,7 +115,7 @@
           </a>
         </li>
 
-        <li class="post">
+        <li class="post" data-tags="读书 随笔">
           <a class="post-link" href="posts/rereading-an-old-book.html">
             <h3 class="post-title">重读一本书，其实是读另一个自己</h3>
             <p class="post-summary">三年前读不下去的小说，这次读到半夜。书没变，能读懂它的那个我变了。</p>
@@ -92,7 +123,7 @@
           </a>
         </li>
 
-        <li class="post">
+        <li class="post" data-tags="生活 随笔">
           <a class="post-link" href="posts/cooking-for-one.html">
             <h3 class="post-title">一个人吃饭，最难的是给自己一个理由</h3>
             <p class="post-summary">一个人做饭真正的难点不是厨艺，是「做给谁」。以及我给自己定的两条很傻的规矩。</p>
@@ -100,7 +131,15 @@
           </a>
         </li>
 
-        <li class="post">
+        <!-- data-newest 标出最新的那一篇（不一定是最上面那条，因为置顶会在最前面）。
+             data-date 是它的日期 —— 顶栏的「最后更新：10 月 12 日」就是从这里算的。
+
+             为什么日期要单独写一份：列表里的日期是由月份标题（2026 年 10 月）
+             承担的，每条文章里【故意不写】<time>。所以 app.js 在列表里找不到
+             <time> 元素，只能读这个属性。写完整格式（年-月-日），
+             和文章页里 <time datetime> 的写法保持一致。
+             加新文章时：把 data-newest 和 data-date 一起挪到新的那一条上。 -->
+        <li class="post" data-tags="随想 写作" data-newest data-date="2026-10-12">
           <a class="post-link" href="posts/things-i-cant-say.html">
             <h3 class="post-title">有些话我永远说不出口</h3>
             <p class="post-summary">说话是一次性的，写字有退格键。关于那些当面说不出来、只能写下来的话。</p>

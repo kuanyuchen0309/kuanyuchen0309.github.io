@@ -136,9 +136,22 @@ img {
   height: auto;
 }
 
+/* 有些 <span> 会被 js/app.js 就地换成 <button>，换成按钮之后必须长得和
+   原来一模一样。所以这里把浏览器的默认外观全部清掉 ——
+   button 天生自带边框和灰底，不清掉标签会突然变成一排小方块。
+
+   光写 `button { font: inherit; color: inherit }` 是不够的：
+   那样按钮的圆角不会跟着 .tag 走，在 Safari 上是方的。 */
 button {
   font: inherit;
   color: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  border-radius: inherit;
 }
 
 /* 键盘 Tab 走到时才显示焦点框（鼠标点击不显示，视觉更干净） */
@@ -222,23 +235,10 @@ code {
   gap: 10px;
 }
 
-/* 头像：没有图片时显示名字首字，有图片时被 css 里的 background-image 盖住 */
-.avatar {
-  flex: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background-color: var(--bg-sunken);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  color: var(--text-sub);
-  font-size: 15px;
-  font-weight: 600;
-  user-select: none;
-}
+/* 顶栏左边只放站名和状态文字，没有头像。
+   头像只出现在首页的定位卡（.intro-avatar）和「我」页的自我介绍（.hero-avatar）里 ——
+   所以这三者各自写自己的尺寸，"顶栏用的头像"这个样式已经删掉了。
+   如果以后想给顶栏加回头像，别直接复用 .intro-avatar（它的 44px 是配卡片的）。 */
 
 .brand-text {
   position: relative;
@@ -717,6 +717,9 @@ html[data-theme="dark"] .icon-moon { opacity: 0; transform: scale(0.6) rotate(40
      ② 导航改到顶栏（.nav-desktop 从 display: none 变成 flex）
      ③ 内容列从 640px 放到 720px
      ④ 正文从 34em 放到 38em（约 38 个汉字一行，仍在舒适范围内）
+
+   ⚠️ 这一节是【全站唯一】加载 css/post.css 的地方 —— 也就是文章正文。
+      因为只有文章页才会同时引这两个文件。移动这一行，正文的桌面宽度就没了。
    ============================================================================ */
 @media (min-width: 768px) {
 
@@ -776,6 +779,242 @@ html[data-theme="dark"] .icon-moon { opacity: 0; transform: scale(0.6) rotate(40
   .topbar-inner {
     padding-left: 20px;
     padding-right: 16px;
+  }
+}
+
+
+/* ============================================================================
+   16. 定位卡（首页最上面那一块）
+   ----------------------------------------------------------------------------
+   解决的问题：首页原来一打开就是搜索框加列表，像一份没有署名的公文。
+   加一张卡说明「这是谁的地方」，第一屏才有主。
+
+   这一段【默认就是桌面端的横排布局】，手机在文件末尾第 19 节里覆盖成竖排。
+
+   注意这是本项目唯一一处故意反过来写的地方（第 15 节是"手机优先 + min-width"，
+   这里是"桌面默认 + max-width"）。理由是这张卡在手机上才是少数派形态，
+   把这段默认样式写进 min-width 反而更长。第 19 节里只有定位卡这一个元素，
+   没有任何原本就存在的手机样式被搬过去，所以第 15 节那段警告在这里不适用。
+   ============================================================================ */
+.intro {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 20px 0 4px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg-soft);
+}
+
+.intro-avatar {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background-color: var(--bg-sunken);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: var(--text-sub);
+  font-size: 18px;
+  font-weight: 600;
+  user-select: none;
+}
+
+.intro-text {
+  min-width: 0;
+}
+
+.intro-name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.intro-bio {
+  margin: 3px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-sub);
+}
+
+.intro-links {
+  margin: 8px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 13px;
+}
+
+.intro-links a {
+  color: var(--accent);
+}
+
+
+/* ============================================================================
+   17. 标签筛选
+   ----------------------------------------------------------------------------
+   原来标签只是装饰。现在点一下就筛出同标签的文章，再点一下取消。
+
+   标签的「可点状态」在 HTML 里【一点都不写】：
+     - 没有 JavaScript 时，它是普通的 <span>，看上去就是一枚标签，不会骗人去点
+     - 有 JavaScript 时，js/app.js 把它换成 <button> 并加上 .is-tag-btn
+   所以样式挂在 .is-tag-btn 上，而不是挂在 .tag 上。这样同一份 HTML
+   在两种情况下都不会出现「看着能点、点了没反应」。
+   ============================================================================ */
+
+/* 可点的标签。尺寸、圆角、颜色必须和 .tag 完全一致 ——
+   否则在 JS 跑起来的那一瞬间，页面上的标签会集体变一下形状。 */
+.is-tag-btn {
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.6;
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--bg-sunken);
+  color: var(--text-meta);
+  white-space: nowrap;
+}
+
+.is-tag-btn:hover {
+  color: var(--text);
+}
+
+/* 选中状态：换成强调色的浅底。
+   注意这是"加一层背景"，没有动字号和边框，所以切换时标签不会跳。 */
+.is-tag-btn.is-on {
+  background: var(--press);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* 筛选状态行。和 .search 用同一套间距，所以两者之间的空隙是均匀的。 */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0 2px;
+  padding: 0 12px;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.filter-bar[hidden] {
+  display: none;
+}
+
+.filter-bar strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.filter-clear {
+  flex: none;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: var(--accent);
+}
+
+.filter-clear:hover {
+  background: var(--bg-sunken);
+}
+
+
+/* ============================================================================
+   18.「我」页动态里的图片
+   ----------------------------------------------------------------------------
+   HTML 结构是一层 <figure>，里面若干张 <img>：
+
+     <figure class="feed-figure">
+       <img src="..." width="1200" height="900" alt="..." loading="lazy">
+       <figcaption>图说</figcaption>
+     </figure>
+
+   width / height 属性是【必须写】的，而且要认真填真实尺寸。
+   浏览器在图片还没下载完的时候，就能靠它俩按比例把位置占好；
+   不写的话图片一到，下面所有内容一起往下跳。
+
+   排版规则（全靠 grid 的 auto-fit，不用为 1 张、2 张、3 张分别写样式）：
+     一张图 → 铺满整行
+     两张图 → 并排两列
+     三张以上 → 自动折行，统一裁成正方形（取中间那块）
+
+   这个 .feed-figure 横跨整个内容列，比正文段落宽，视觉上是一块"照片墙"。
+   如果你想让图跟着文字缩进，把下面 max-width 那行删掉即可。
+   ============================================================================ */
+.feed-figure {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 6px;
+  margin: 12px 0 4px;
+}
+
+.feed-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  background: var(--bg-sunken);
+}
+
+/* 图说横跨所有列，永远在图片下面一行。
+   它和图片之间只有 6px（grid 的 gap），显得太挤，所以单独加点上边距。 */
+.feed-figure figcaption {
+  grid-column: 1 / -1;
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-meta);
+}
+
+/* 两张及以上的图：因为并排了，每格高度必须由 grid 统一决定，
+   所以这一段只在"多图"时才把图片裁成正方形。
+   用 :has() 判断容器里有几个子元素 —— 现代浏览器都支持，
+   不支持的话图片只是保持原比例，排版依然正常（只是高矮不齐）。 */
+.feed-figure:has(img + img) img {
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+
+/* ============================================================================
+   19. 只在手机上生效的收尾覆盖
+   ----------------------------------------------------------------------------
+   上面第 16 节把定位卡写成了桌面端的横排。手机屏幕窄，横排会挤，这里改回竖排。
+
+   用 max-width（而不是像第 15 节那样用 min-width）是因为这一段的目标
+   恰好就是"手机"，也就是"屏幕不够宽"这个条件本身。
+   ⚠️ 这里【只放新加元素（定位卡）的覆盖】，不要往里搬任何原本就有的手机样式 ——
+      第 15 节那段"搬漏一条就出事"的警告，防的就是这件事。
+   ============================================================================ */
+@media (max-width: 767px) {
+
+  .intro {
+    display: block;
+    text-align: center;
+    margin-top: 16px;
+    padding: 18px 16px;
+  }
+
+  /* 竖排时头像要自己居中，横排的 gap 也不起作用了，改用 margin 拉开距离 */
+  .intro-avatar {
+    width: 56px;
+    height: 56px;
+    font-size: 22px;
+    margin: 0 auto 10px;
+  }
+
+  .intro-links {
+    justify-content: center;
   }
 }
 
