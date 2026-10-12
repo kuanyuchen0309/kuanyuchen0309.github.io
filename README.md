@@ -25,11 +25,30 @@ blog/
 ├── js/
 │   ├── theme.js          深色模式的"防闪烁"脚本（必须在 <head> 里）
 │   └── app.js            深色开关、搜索、顶栏淡化
-└── img/                  放头像图片（现在是空的，见下面「换成自己的头像」）
+├── img/
+│   ├── touxiang.jpg      头像原图（645×645）
+│   ├── touxiang-180.png  主屏幕图标，从上面那张缩来的
+│   └── touxiang-512.png  同上，给 Android 用
+└── manifest.webmanifest  让手机把它装成 App（见下面「装到手机主屏幕上」）
 ```
 
 **所有路径都是相对路径**（`../css/style.css` 这种），没有以 `/` 开头的绝对路径。
 原因：GitHub Pages 的项目站点是挂在 `/仓库名/` 下面的，绝对路径会指错地方。
+
+两张 PNG 是从 `img/touxiang.jpg` 缩出来的，换头像时用这段重新生成一次：
+
+```powershell
+Add-Type -AssemblyName System.Drawing
+$s = [System.Drawing.Image]::FromFile((Resolve-Path 'img\touxiang.jpg').Path)
+foreach ($n in 180, 512) {
+  $b = New-Object System.Drawing.Bitmap($n, $n)
+  $g = [System.Drawing.Graphics]::FromImage($b)
+  $g.InterpolationMode = 'HighQualityBicubic'
+  $g.DrawImage($s, (New-Object System.Drawing.Rectangle(0, 0, $n, $n)))
+  $g.Dispose(); $b.Save("$PWD\img\touxiang-$n.png"); $b.Dispose()
+}
+$s.Dispose()
+```
 
 ---
 
@@ -131,6 +150,40 @@ blog/
 
 ---
 
+## 装到手机主屏幕上（PWA）
+
+`manifest.webmanifest` 让这个站可以被"装"成手机上的一个 App：点主屏幕图标打开后**没有浏览器地址栏和工具栏**，点「归档」「我」、点进任何一篇文章，都还在这个无边框的窗口里。
+
+**关键在于 `scope` 这一行：**
+
+```json
+"start_url": "./",
+"scope": "./",
+"display": "standalone",
+```
+
+`scope` 划定了"哪些页面算这个 App 的地盘"。地盘内的跳转留在 App 窗口里；跑到地盘外（比如文章里那个 GitHub 外链）才会交给浏览器打开。
+
+**没有 manifest 会怎样**（这就是加它之前的状态）：iOS 只把它存成一条"书签"，认识你保存的那**一个**网址。点图标打开它，确实没有浏览器组件；但一点「归档」跳到另一个网址，iOS 就当是新开了一个网页，Safari 的地址栏全回来了。
+
+**8 个页面都要挂上这几行**，不是只挂在 `index.html`——iOS 打开哪一页，就读哪一页的 manifest 链接：
+
+```html
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="img/touxiang-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+```
+
+⚠️ **文章页（`posts/` 里）的路径要加 `../`**：`../manifest.webmanifest`、`../img/touxiang-180.png`。**加新文章时这是第 4 个要改的地方。**
+
+**改完之后必须重新装一次**：已经加到主屏幕的图标**不会自动更新**。长按图标 → 删除 → Safari 打开站点 → 分享 → 添加到主屏幕。之后进任何页面都不会再出现 Safari 的组件。
+
+**图标**：`img/touxiang-180.png`（180×180，Apple 的规定尺寸）和 `img/touxiang-512.png`（512×512，给 Android/Chrome 用），都是从 `img/touxiang.jpg` 缩小来的。换头像时记得重新生成这两个尺寸；`apple-touch-icon` 的优先级高于 manifest 里 `icons` 那一段。
+
+**`theme-color` 为什么写两个**：独立窗口顶部那条状态栏要跟站点同色。浅色和深色各一个，用 `media="(prefers-color-scheme: light/dark)"` 区分——和深色配色一样，是"同一件事写两遍"，但这次是没法避免的（媒体查询没法合并）。
+
+---
+
 ## 关于桌面端
 
 现在手机和电脑用的是**同一套布局**：手机上铺满，电脑上是一个最大 640px、水平居中的单列。
@@ -164,7 +217,7 @@ git push -u origin main
 
 | 事情 | 现状 | 为什么这样选 |
 | --- | --- | --- |
-| 加文章要改 3 个地方 | 手工同步 | 换来的是"没有构建步骤、内容在 HTML 里、关掉 JS 也能用"。等你以后上 Astro，这个重复会自动消失 |
+| 加文章要改 4 个地方 | 手工同步 | 换来的是"没有构建步骤、内容在 HTML 里、关掉 JS 也能用"。第 4 处是文章页 `<head>` 里那几行 manifest/图标（见「装到手机主屏幕上」）。等你以后上 Astro，这些重复会自动消失 |
 | 标签不能点击筛选 | 只展示 | 筛选需要 `?tag=xxx` 这样的网址状态，属于下一阶段的活 |
 | 深色配色写了两遍 | `style.css` 第 2、3 节 | 见上面「怎么改配色」 |
 | 文章页没有底栏导航 | 只有左上角「文章」返回 | 读长文时给她尽量干净的一屏 |

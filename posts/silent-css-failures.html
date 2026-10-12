@@ -8,6 +8,17 @@
 <script src="../js/theme.js"></script>
 <link rel="stylesheet" href="../css/style.css">
 <link rel="stylesheet" href="../css/post.css">
+
+<!-- 让 iOS 把这个站当成一个 App（而不是一个网址）装到主屏幕上。
+     scope 写在 manifest 里 —— 它决定「哪些页面算这个 App 的地盘」，
+     地盘内的跳转才不会掉回 Safari。详见 README「装到手机主屏幕上」。 -->
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="apple-touch-icon" href="../img/touxiang-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="xudc">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
 </head>
 <body class="page-post">
 
