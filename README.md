@@ -35,6 +35,8 @@ blog/
 │   └── feed.json         「我」页全部动态的数据（文字、日期、配图）
 ├── tools/
 │   └── data-check.mjs    用 data/*.json 还原标记，和现有页面比对
+├── admin/                【还没上线】手机发布的编辑器
+│   └── worker/           GitHub OAuth 代理（Cloudflare Worker）。见该目录的 README
 └── manifest.webmanifest  让手机把它装成 App（见下面「装到手机主屏幕上」）
 ```
 
@@ -111,6 +113,33 @@ node tools/data-check.mjs --write    # 把生成结果写回那三个页面
 两者现在其实是同一个顺序，但**含义不同**：首页那条是"倒序排出来恰好长这样"，归档那条是"按升序排"。所以以后加一篇 10/15 的文章，首页会把它放最前，归档会把它放最后——**归档会把最新的一篇藏在最底下**。
 
 **修法**：把 `data/posts.json` 里每篇的 `order.archive` 改成倒序（10/12 改成 1，10/01 改成 5），或者干脆把 `order` 字段全删掉，让生成器统一按日期倒序排两个页面。这个决定留给你。
+
+---
+
+## `admin/` 是干什么的（还没上线）
+
+**目标：在手机上直接发一条动态，不用碰 HTML。**
+
+现在这一步只完成了两件事，编辑页面本身还没做：
+
+| 已完成 | 位置 |
+| --- | --- |
+| 内容的单一真相源 | `data/posts.json`、`data/feed.json` |
+| 数据没写坏的校验 | `tools/data-check.mjs` |
+| 写仓库需要的认证代理 | `admin/worker/`（Cloudflare Worker） |
+
+### 为什么需要一个 Worker
+
+编辑页面要往 GitHub 写文件，就得有能写仓库的凭证。而这个仓库**就是网站在对外服务的源**——把令牌放在公开网站的浏览器里，一旦泄露，拿到它的人能往 `index.html` 里注入 JavaScript，于是**每个访问你博客的人都会被投毒**。那不是"博客被改乱"，那是把站变成攻击载荷。
+
+所以令牌绝不进浏览器：浏览器只拿一个 `httpOnly` Cookie 里的随机 id，令牌存在 Cloudflare KV 里，由 Worker 代你调 GitHub。细节和部署步骤在 [`admin/worker/README.md`](admin/worker/README.md)。
+
+**这套代码目前没有部署，也不会影响线上站点**——`admin/` 目录只是放在仓库里，就算被 GitHub Pages 发布出去也只是几个文本文件，里面没有任何机密（机密是部署时用 `wrangler secret put` 设的，不在仓库里）。
+
+### 还差什么
+
+1. 一个编辑页面（`admin/index.html`）：一个输入框 + 选图 + 发布按钮
+2. 因为 `--write` 会吃掉注释，需要先把标记抽到 `templates/` 再让编辑器生成页面
 
 ---
 
