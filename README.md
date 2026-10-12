@@ -35,7 +35,7 @@ blog/
 │   └── feed.json         「我」页全部动态的数据（文字、日期、配图）
 ├── tools/
 │   └── data-check.mjs    用 data/*.json 还原标记，和现有页面比对
-├── admin/                【还没上线】手机发布的编辑器
+├── editor/               【还没上线】手机发布的编辑器
 │   └── worker/           GitHub OAuth 代理（Cloudflare Worker）。见该目录的 README
 └── manifest.webmanifest  让手机把它装成 App（见下面「装到手机主屏幕上」）
 ```
@@ -116,7 +116,7 @@ node tools/data-check.mjs --write    # 把生成结果写回那三个页面
 
 ---
 
-## `admin/` 是干什么的（还没上线）
+## `editor/` 是干什么的（还没上线）
 
 **目标：在手机上直接发一条动态，不用碰 HTML。**
 
@@ -126,20 +126,34 @@ node tools/data-check.mjs --write    # 把生成结果写回那三个页面
 | --- | --- |
 | 内容的单一真相源 | `data/posts.json`、`data/feed.json` |
 | 数据没写坏的校验 | `tools/data-check.mjs` |
-| 写仓库需要的认证代理 | `admin/worker/`（Cloudflare Worker） |
+| 写仓库需要的认证代理 | `editor/worker/`（Cloudflare Worker） |
 
 ### 为什么需要一个 Worker
 
 编辑页面要往 GitHub 写文件，就得有能写仓库的凭证。而这个仓库**就是网站在对外服务的源**——把令牌放在公开网站的浏览器里，一旦泄露，拿到它的人能往 `index.html` 里注入 JavaScript，于是**每个访问你博客的人都会被投毒**。那不是"博客被改乱"，那是把站变成攻击载荷。
 
-所以令牌绝不进浏览器：浏览器只拿一个 `httpOnly` Cookie 里的随机 id，令牌存在 Cloudflare KV 里，由 Worker 代你调 GitHub。细节和部署步骤在 [`admin/worker/README.md`](admin/worker/README.md)。
+所以令牌绝不进浏览器：浏览器只拿一个 `httpOnly` Cookie 里的随机 id，令牌存在 Cloudflare KV 里，由 Worker 代你调 GitHub。细节和部署步骤在 [`editor/worker/README.md`](editor/worker/README.md)。
 
-**这套代码目前没有部署，也不会影响线上站点**——`admin/` 目录只是放在仓库里，就算被 GitHub Pages 发布出去也只是几个文本文件，里面没有任何机密（机密是部署时用 `wrangler secret put` 设的，不在仓库里）。
+**这套代码目前没有部署，也不会影响线上站点。**
+
+### 一个查出来的事实：GitHub Pages 屏蔽 `/admin/` 路径
+
+写这一步时顺手验证了线上，发现：
+
+| 路径 | 结果 |
+| --- | --- |
+| `/data/feed.json`、`/tools/data-check.mjs`、`/README.md` | 200 |
+| **`/admin/…`（任何文件）** | **404** |
+
+同一批提交、其他目录全部正常，只有 `admin/` 一律 404 —— 这是 GitHub 的防护：`/admin` 是攻击者最常扫的路径之一，Pages 干脆不提供这个前缀。所以这个目录原来叫 `admin/` 是选错了名字，已改成 `editor/`。
+
+**对这件事本身没有影响**（Worker 是部署到 Cloudflare 的，不靠 Pages 托管），但**它说明了一个恰好合适的结论**：编辑页面本来就不该放在公开站点上。以后那个编辑页面更好的做法是放在 Cloudflare 那边（Workers 或 Pages 项目），和公开站点分开。
 
 ### 还差什么
 
-1. 一个编辑页面（`admin/index.html`）：一个输入框 + 选图 + 发布按钮
+1. 一个编辑页面：一个输入框 + 选图 + 发布按钮
 2. 因为 `--write` 会吃掉注释，需要先把标记抽到 `templates/` 再让编辑器生成页面
+3. 编辑页面放哪：建议 Cloudflare，不要放公开站点
 
 ---
 

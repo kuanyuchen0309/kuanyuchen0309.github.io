@@ -41,14 +41,16 @@ GitHub → **Settings → Developer settings → OAuth Apps → New OAuth App**
 | Homepage URL | `https://xudc.org/`（还没切域名就先填 `https://kuanyuchen0309.github.io/`） |
 | **Authorization callback URL** | **部署完 Worker 之后才知道**，见第 4 步 |
 
-⚠️ **OAuth App 只允许填一个回调地址。** 而且我们的 Worker 会把浏览器重定向回 `ADMIN_URL`（`wrangler.jsonc` 里的那一个），所以如果你想让编辑页同时能在 `xudc.org/admin/` 和 `kuanyuchen0309.github.io/admin/` 打开，**登录只能从 `ALLOWED_ORIGINS` 里的任意一个来源发起，但登录完一定跳回 `ADMIN_URL` 指定的那一个**。这是 GitHub 的限制，不是这个 Worker 的缺陷。
+⚠️ **OAuth App 只允许填一个回调地址。** 而且我们的 Worker 会把浏览器重定向回 `ADMIN_URL`（`wrangler.jsonc` 里的那一个）。所以：**登录可以从 `ALLOWED_ORIGINS` 里的任意一个来源发起，但登录完一定跳回 `ADMIN_URL` 指定的那一个地址**。这是 GitHub 的限制，不是这个 Worker 的缺陷。
+
+顺带一提：编辑页面最后落在哪个域名上，取决于你把它部署在哪。**建议部署到 Cloudflare 那边**（Workers 或 Pages 项目），和公开站点分开 —— 原因见主 README 里「GitHub Pages 屏蔽 `/admin/` 路径」那一节。
 
 创建完记下 **Client ID**，再点 **Generate a new client secret** 生成密钥。
 
 ### 2. 建 KV 命名空间（存会话）
 
 ```bash
-cd admin/worker
+cd editor/worker
 npx wrangler kv namespace create SESSIONS
 ```
 
@@ -99,7 +101,7 @@ https://xudc-editor-oauth.<你的子域>.workers.dev/callback
 ## 跑测试
 
 ```bash
-node admin/worker/worker.test.mjs
+node editor/worker/worker.test.mjs
 ```
 
 43 项断言，不需要 Cloudflare 账号，全在本地跑（用假的 KV 和假的 GitHub）。覆盖：

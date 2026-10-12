@@ -9,7 +9,7 @@
      /session  → 报告登录身份
      /api      → 用 KV 里的令牌去调 GitHub（假 GitHub 检查 Authorization 头）
 
-   跑：node admin/worker/worker.test.mjs
+   跑：node editor/worker/worker.test.mjs
    ============================================================================ */
 
 import worker from "./index.js";
@@ -41,7 +41,7 @@ const ENV = {
   GITHUB_CLIENT_ID: "Iv1.fakeclientid",
   GITHUB_CLIENT_SECRET: "fake-secret-should-never-be-sent-to-browser",
   STATE_SECRET: "fake-state-secret-for-tests",
-  ADMIN_URL: "https://kuanyuchen0309.github.io/admin/",
+  ADMIN_URL: "https://kuanyuchen0309.github.io/editor/",
   ALLOWED_ORIGINS: "https://kuanyuchen0309.github.io,https://xudc.org",
   COOKIE_SAMESITE: "None",
   SESSION_TTL_SECONDS: "604800",
