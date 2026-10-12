@@ -47,6 +47,15 @@
 
         </span>
       </div>
+
+      <!-- 桌面端导航：手机上 display: none，只在 ≥768px 时出现（见 style.css 第 14、15 节）。
+           当前页在链接上加 .is-active，和底栏那三个保持一致。 -->
+      <nav class="nav-desktop" aria-label="站点导航">
+        <a href="index.html">文章</a>
+        <a href="archive.html">归档</a>
+        <a href="me.html" class="is-active">我</a>
+      </nav>
+
       <button class="icon-btn" id="themeToggle" type="button" aria-label="切换到深色模式">
         <svg class="ico icon-moon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
           stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

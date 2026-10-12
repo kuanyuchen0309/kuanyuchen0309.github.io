@@ -2,3 +2,6 @@
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# 本地核对布局用的截图（无头浏览器生成，不用提交）
+.shots/
