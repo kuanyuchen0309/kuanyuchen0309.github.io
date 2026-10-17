@@ -76,7 +76,7 @@
   <main class="wrap">
 
     <section class="hero">
-      <div class="hero-avatar" style="background-image: url('img/touxiang.jpg')" aria-hidden="true">K</div>
+      <div class="hero-avatar" style="background-image: url('img/touxiang.jpg')" aria-hidden="true"></div>
       <h1 class="hero-name">kuanyuchen</h1>
 
       <div class="hero-bio">
@@ -95,31 +95,6 @@
 
     <ul class="feed">
 
-      <!-- ==================================================================
-           一条动态长这样：
-
-           <li class="feed-item" id="d-2026-10-14">
-             <time class="feed-date" datetime="2026-10-14">2026 年 10 月 14 日</time>
-             <p class="feed-text">文字。</p>
-             <figure class="feed-figure">
-               <img data-src="img/feed/2026-10-14-1.jpg" width="1200" height="900" alt="图片说明" loading="lazy">
-               <figcaption>图说，可以整段删掉</figcaption>
-             </figure>
-           </li>
-
-           三条要点：
-             ① width / height 必须写成图片的【真实像素尺寸】。这不是摆设 ——
-                浏览器靠它提前按比例占好位置，图片下载完才不会把页面顶下去。
-                写错了会让页面跳一下（专业说法叫 CLS）。
-             ② 一张图就是一段图，两三张图并排。三张以上（最多九张）自动变网格，
-                并且统一裁成正方形 —— 见 style.css 第 18 节。
-             ③ id 是给外部链接用的（文章里可以写 me.html#d-2026-10-14），
-                不加也行。加了之后这一条可以单独分享。
-
-           （上面那个例子里写的是 data-src 而不是 src，是为了让站内的
-             链接自检不会把"示例"当成一张真的图片去找。你自己写的时候要用 src。）
-           ================================================================== -->
-
       <li class="feed-item" id="d-2026-10-12">
         <time class="feed-date" datetime="2026-10-12">2026 年 10 月 12 日</time>
         <p class="feed-text">和很久没见的初中同学吃了顿饭。聊了四十分钟，说了很多话，但好像什么都没说。回来睡不着，写了一篇。</p>
@@ -128,8 +103,6 @@
       <li class="feed-item" id="d-2026-10-10">
         <time class="feed-date" datetime="2026-10-10">2026 年 10 月 10 日</time>
         <p class="feed-text">一个人做饭第十天。以前一直以为是不会做，今天想明白了：是没人要吃，所以「没必要」。今天给自己下了碗面，吃完把碗洗了——这件小事以前很少发生。</p>
-        <!-- 示例图：内容是一张随手拍。换成自己的照片时，
-             记得同时改 src、width、height、alt 四个地方（见上面那段说明）。 -->
         <figure class="feed-figure">
           <img src="img/feed/2026-10-10-1.jpg" width="1200" height="1200" alt="一碗面" loading="lazy">
         </figure>
@@ -143,7 +116,6 @@
       <li class="feed-item" id="d-2026-10-03">
         <time class="feed-date" datetime="2026-10-03">2026 年 10 月 3 日</time>
         <p class="feed-text">没定目的地就出门了，左转走进一条住了两年、路过上百次却从没进去过的巷子。半路下雨，在小卖部屋檐下站了十几分钟。什么也没买，什么也没办。</p>
-        <!-- 两张图并排的例子。图说可以有，也可以整段 <figcaption> 删掉。 -->
         <figure class="feed-figure">
           <img src="img/feed/2026-10-03-1.jpg" width="600" height="600" alt="巷子" loading="lazy">
           <img src="img/feed/2026-10-03-2.jpg" width="600" height="600" alt="下雨天的屋檐" loading="lazy">

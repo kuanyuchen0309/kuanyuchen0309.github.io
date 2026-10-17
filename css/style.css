@@ -577,20 +577,18 @@ html[data-theme="dark"] .icon-moon { opacity: 0; transform: scale(0.6) rotate(40
   text-align: center;
 }
 
+/* 头像是一个空的圆形 div，图片放在 background-image 里（写在 HTML 的行内 style 上，
+   方便换图时只改 HTML）。里面不放任何文字 —— 早先里面写了一个字母当占位，
+   加了图片之后它就压在照片上面了。background-color 只在图片还没加载出来时露个底色。 */
 .hero-avatar {
   width: 84px;
   height: 84px;
   margin: 0 auto 14px;
   border-radius: 50%;
-  display: grid;
-  place-items: center;
   background-color: var(--bg-sunken);
   background-size: cover;
   background-position: center;
-  color: var(--text-sub);
-  font-size: 32px;
-  font-weight: 600;
-  user-select: none;
+  background-repeat: no-repeat;
 }
 
 .hero-name {
@@ -833,21 +831,16 @@ html[data-theme="dark"] .icon-moon { opacity: 0; transform: scale(0.6) rotate(40
   background: var(--bg-soft);
 }
 
+/* 同上：空 div + background-image，里面不留文字 */
 .intro-avatar {
   flex: none;
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  display: grid;
-  place-items: center;
   background-color: var(--bg-sunken);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  color: var(--text-sub);
-  font-size: 18px;
-  font-weight: 600;
-  user-select: none;
 }
 
 .intro-text {
@@ -1047,7 +1040,6 @@ html[data-theme="dark"] .icon-moon { opacity: 0; transform: scale(0.6) rotate(40
   .intro-avatar {
     width: 56px;
     height: 56px;
-    font-size: 22px;
     margin: 0 auto 10px;
   }
 

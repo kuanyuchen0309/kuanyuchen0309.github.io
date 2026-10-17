@@ -61,7 +61,7 @@
        页面一打开就是搜索框加列表的话，太像一份没有署名的公文。
        手机上自动变成竖排（见 style.css 第 16 节）。 -->
   <section class="intro">
-    <div class="intro-avatar" style="background-image: url('img/touxiang.jpg')" aria-hidden="true">K</div>
+    <div class="intro-avatar" style="background-image: url('img/touxiang.jpg')" aria-hidden="true"></div>
     <div class="intro-text">
       <h2 class="intro-name">kuanyuchen</h2>
       <p class="intro-bio">这是一个随意的 blog。写些日常、读书和想不明白的事。</p>
@@ -95,10 +95,6 @@
 
       <ul class="post-list">
 
-        <!-- 置顶：data-pin 里的数字是排序用的，1 最靠前。
-             想调整置顶的先后顺序，改这个数字就行，不用搬动整段 HTML。
-             这个功能要有 JavaScript 才生效；不过随便哪一条标着 data-pin，
-             静态 HTML 本来就是排在最前面的，所以关掉脚本也不会乱。 -->
         <li class="post is-pinned" data-pin="1" data-tags="随笔 生活">
           <a class="post-link" href="posts/tidy-the-drawer.html">
             <h3 class="post-title"><span class="pin-badge">置顶</span>十月一日，我扔掉了三箱东西</h3>
@@ -131,14 +127,6 @@
           </a>
         </li>
 
-        <!-- data-newest 标出最新的那一篇（不一定是最上面那条，因为置顶会在最前面）。
-             data-date 是它的日期 —— 顶栏的「最后更新：10 月 12 日」就是从这里算的。
-
-             为什么日期要单独写一份：列表里的日期是由月份标题（2026 年 10 月）
-             承担的，每条文章里【故意不写】<time>。所以 app.js 在列表里找不到
-             <time> 元素，只能读这个属性。写完整格式（年-月-日），
-             和文章页里 <time datetime> 的写法保持一致。
-             加新文章时：把 data-newest 和 data-date 一起挪到新的那一条上。 -->
         <li class="post" data-tags="随想 写作" data-newest data-date="2026-10-12">
           <a class="post-link" href="posts/things-i-cant-say.html">
             <h3 class="post-title">有些话我永远说不出口</h3>
